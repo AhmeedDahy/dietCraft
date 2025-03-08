@@ -1,0 +1,37 @@
+[
+  {
+    "Bmi": {
+      "bmi": 25,
+      "bmiStatus": "Overweight",
+      "unit": "kg/cm"
+    },
+    "Bmr": {
+      "BMR": {
+        "value": 2145,
+        "unit": "kcal"
+      },
+      "totalDailyCaloricNeeds": {
+        "value": 2700.12,
+        "unit": "kcal"
+      },
+      "protein": {
+        "min": 120,
+        "preferred": 160,
+        "max": 220,
+        "unit": "g"
+      },
+      "fat": {
+        "min": 60,
+        "preferred": 75,
+        "max": 90,
+        "unit": "g"
+      },
+      "carbohydrates": {
+        "min": 252.5,
+        "preferred": 346.3,
+        "max": 420,
+        "unit": "g"
+      }
+    }
+  }
+]
