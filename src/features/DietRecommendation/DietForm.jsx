@@ -1,114 +1,91 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useForm } from "react-hook-form";
 import { useTarget } from "../../context/TargetContext";
-import { useMemo, useEffect } from "react";
+import { useEffect } from "react";
 import useUser from "../auth/useUser";
 import usePlan from "./usePlan";
 import useDiet from "./useDiet";
 import Target from "../DietRecommendation/Target";
+import Spinner from "../../ui/Spinner";
 import SpinnerMini from "../../ui/SpinnerMini";
+import useCreateTarget from "./useCreateTarget";
+import useGetTarget from "./useGetTarget";
 
 function DietForm() {
   const { user } = useUser();
-  const { plan: plans } = usePlan(user?.email);
-  const { getNutritions, isLoading } = useTarget();
+  const { plan: plans, isPending: isPlanning } = usePlan(user?.email);
+  const { getNutritions, isLoading, data: res } = useTarget();
   const { dietFn } = useDiet();
+  const { targetFn } = useCreateTarget();
+  const { isPending: isGetting } = useGetTarget(user?.email);
 
-  // Memoize details to prevent unnecessary recalculations
-  const details = useMemo(
-    () => (Array.isArray(plans) ? plans.map((e) => e) : []),
-    [plans]
-  );
+  // Combine all loading states
+  const isAnyLoading = isGetting || isPlanning;
 
-  // Memoize all initial values
-  const initialAge = useMemo(
-    () => (details.length > 0 ? details[0]?.age : null),
-    [details]
-  );
-  const initialWeight = useMemo(
-    () => (details.length > 0 ? details[0]?.weight : null),
-    [details]
-  );
-  const initialHeight = useMemo(
-    () => (details.length > 0 ? details[0]?.height : null),
-    [details]
-  );
-  const initialBodyfat = useMemo(
-    () => (details.length > 0 ? details[0]?.bodyFat : null),
-    [details]
-  );
-  const initialPlan = useMemo(
-    () =>
-      details.length > 0 ? details[0]?.plan + " " + details[0]?.rate : null,
-    [details]
-  );
-  const initialGender = useMemo(
-    () => (details.length > 0 ? details[0]?.gender : null),
-    [details]
-  );
-  const initialActivity = useMemo(
-    () => (details.length > 0 ? details[0]?.activity : null),
-    [details]
-  );
+  // Simplify details and initial values
+  const details = Array.isArray(plans) ? plans : [];
+  const initialValues = details.length > 0 ? details[0] : null;
 
   // useForm hook
   const {
     register,
     formState: { errors },
     handleSubmit,
-    reset,
+    reset
   } = useForm();
 
   // Reset form with default values when data is loaded
   useEffect(() => {
-    if (details.length > 0) {
+    if (initialValues) {
       reset({
-        height: initialHeight,
-        weight: initialWeight,
-        bodyFat: initialBodyfat,
-        age: initialAge,
-        plan: initialPlan,
-        gender: initialGender,
-        activity: initialActivity,
+        height: initialValues.height,
+        weight: initialValues.weight,
+        bodyFat: initialValues.bodyFat,
+        age: initialValues.age,
+        plan: initialValues.plan + " " + initialValues.rate,
+        gender: initialValues.gender,
+        activity: initialValues.activity
       });
     }
-  }, [
-    details,
-    initialHeight,
-    initialWeight,
-    initialBodyfat,
-    initialAge,
-    initialPlan,
-    initialGender,
-    initialActivity,
-  ]); // <-- Stable dependencies
+  }, [initialValues, reset]);
 
   // Email and fullName user
-  const email = useMemo(() => user?.email || "", [user]);
-  const fullName = useMemo(
-    () =>
-      `${user?.user_metadata?.firstName || ""} ${user?.user_metadata?.lastName || ""}`.trim(),
-    [user]
-  );
+  const email = user?.email || "";
+  const fullName =
+    `${user?.user_metadata?.firstName || ""} ${user?.user_metadata?.lastName || ""}`.trim();
 
-  // handleSubmit
-  const onSubmit = (data) => {
-    const rate = data?.plan?.split(" ");
-    const nutrationsGuest = {
-      ...data,
-      height: Number(data.height),
-      weight: Number(data.weight),
-      bodyFat: Number(data.bodyFat),
-      age: Number(data.age),
-      rate: rate[1],
-      plan: rate[0],
-    };
-    dietFn({
-      addGuest: { ...data, email, fullName, rate: rate[1], plan: rate[0] },
-      email,
-    });
-    getNutritions(nutrationsGuest);
+  // Handle form submission
+  const onSubmit = async (data) => {
+    try {
+      const rate = data?.plan?.split(" ");
+      const nutrationsGuest = {
+        ...data,
+        height: Number(data.height),
+        weight: Number(data.weight),
+        bodyFat: Number(data.bodyFat),
+        age: Number(data.age),
+        rate: rate[1],
+        plan: rate[0]
+      };
+      await dietFn({
+        addGuest: { ...data, email, fullName, rate: rate[1], plan: rate[0] },
+        email
+      });
+      await getNutritions(nutrationsGuest);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      // Display an error message to the user
+    }
   };
+
+  // Save target data when response is received
+  useEffect(() => {
+    if (res) targetFn({ email, targetData: res });
+  }, [res]);
+
+  if (isAnyLoading) {
+    return <Spinner />;
+  }
 
   return (
     <div>
@@ -116,6 +93,7 @@ function DietForm() {
         Calculate Your Diet Plan
       </h2>
       <form onSubmit={handleSubmit(onSubmit)}>
+        {/* Form fields (age, height, weight, gender, plan, activity) */}
         <div className="grid gap-6 mb-6 md:grid-cols-2">
           <div>
             <label
@@ -130,7 +108,7 @@ function DietForm() {
               {...register("age", {
                 required: "Age is required",
                 min: { value: 13, message: "Age must exceed 100 cm" },
-                max: { value: 110, message: "Age must not exceed 250 cm" },
+                max: { value: 110, message: "Age must not exceed 250 cm" }
               })}
               className={`w-full p-3 border rounded-lg outline-none ${
                 errors.age ? "border-red-500" : "border-gray-300"
@@ -156,7 +134,7 @@ function DietForm() {
               {...register("height", {
                 required: "Height is required",
                 min: { value: 100, message: "Height must exceed 100 cm" },
-                max: { value: 250, message: "Height must not exceed 250 cm" },
+                max: { value: 250, message: "Height must not exceed 250 cm" }
               })}
               className={`w-full p-3 border rounded-lg outline-none ${
                 errors.height ? "border-red-500" : "border-gray-300"
@@ -182,12 +160,12 @@ function DietForm() {
                 required: "Weight is required",
                 min: {
                   value: 60,
-                  message: "The minimum allowed weight is 60",
+                  message: "The minimum allowed weight is 60"
                 },
                 max: {
                   value: 300,
-                  message: "The maximum allowed weight is 300",
-                },
+                  message: "The maximum allowed weight is 300"
+                }
               })}
               className={`w-full p-3 border rounded-lg outline-none ${
                 errors.weight ? "border-red-500" : "border-gray-300"
@@ -267,11 +245,12 @@ function DietForm() {
             </select>
           </div>
         </div>
-
         <div className="py-4">
           <button
             type="submit"
-            className="px-5 py-3 transition text-white text-sm font-medium bg-[#16a34a] rounded-lg w-full hover:bg-green-800 focus:ring-0 focus:outline-none"
+            disabled={isLoading}
+            aria-label="Calculate Diet Plan"
+            className="flex items-center justify-center w-full gap-2 p-3 text-white transition-transform transform bg-green-600 rounded-lg md:w-48 hover:bg-green-700"
           >
             {isLoading ? (
               <div className="flex items-center justify-center">

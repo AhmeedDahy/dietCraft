@@ -17,6 +17,7 @@ function Results({ dessert }) {
           src={
             dessert?.Images[0] || "/6c4a7fb9-5fde-42e2-b537-b4732a92cf56.png"
           }
+          loading="lazy"
           className="object-cover w-full h-56 rounded-t-lg rounded-b-none"
         />
       </div>

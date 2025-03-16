@@ -19,7 +19,7 @@ html {
 }
 
 @layer utilities {
-  .border-except-last-2 > *:nth-last-child(n + 3) {
+  .border-except-last-2 > *:nth-last-child(n + 1) {
     @apply border-b;
   }
   @media (max-width: 676px) {

@@ -26,7 +26,7 @@ function IngredientsProvider({ children }) {
       try {
         setIsLoading(true);
         const res = await fetch(
-          `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=7OzdgD1h7fyklruZGsBB77TgSAEIb9KugGQizT4e&query=${searchItem}&dataType=Foundation`,
+          `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=7OzdgD1h7fyklruZGsBB77TgSAEIb9KugGQizT4e&query=${searchItem}&dataType=Foundation,Branded`,
           { signal }
         );
 

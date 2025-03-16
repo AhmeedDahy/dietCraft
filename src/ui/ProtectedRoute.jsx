@@ -1,10 +1,9 @@
 /* eslint-disable react/prop-types */
-import useUser from "../features/auth/useUser";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Spinner from "../ui/Spinner";
+import useUser from "../features/auth/useUser";
 
-function ProtectRoute({ children }) {
+function ProtectedRoute({ children }) {
   const navigate = useNavigate();
   const { isPending, isAuthenticated } = useUser();
 
@@ -12,14 +11,8 @@ function ProtectRoute({ children }) {
     if (!isAuthenticated && !isPending) navigate("/login");
   }, [isAuthenticated, navigate, isPending]);
 
-  if (isPending)
-    return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
-        <Spinner />
-      </div>
-    );
-
-  if (isAuthenticated) return children;
+  // Render children only if authenticated
+  return isAuthenticated ? children : null;
 }
 
-export default ProtectRoute;
+export default ProtectedRoute;

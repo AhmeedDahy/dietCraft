@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { FaUserCircle, FaEdit, FaPlus } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { IoIosClose } from "react-icons/io";
 import useUser from "../features/auth/useUser";
 import usePlan from "../features/DietRecommendation/usePlan";
 import useUpdateUser from "../features/auth/useUpdateUser";
@@ -8,7 +9,8 @@ import Spinner from "../ui/Spinner";
 import SpinnerMini from "../ui/SpinnerMini";
 import PlanForm from "../ui/PlanForm";
 import Modal from "../ui/Modal";
-import { IoIosClose } from "react-icons/io";
+import UpdatePassword from "../features/auth/UpdatePassword";
+import toast from "react-hot-toast";
 
 function Account() {
   const { user, isPending, isAuthenticated } = useUser();
@@ -52,6 +54,7 @@ function Account() {
       { firstName, lastName, avatar },
       {
         onSuccess: () => {
+          toast.success("User updated successfully!");
           setIsEditModalOpen(false);
         }
       }
@@ -68,6 +71,7 @@ function Account() {
             <img
               src={user.user_metadata.avatar}
               alt="User Avatar"
+              loading="lazy"
               className="rounded-full block w-[4rem] h-[4rem] object-cover object-center aspect-square"
             />
           ) : (
@@ -165,20 +169,7 @@ function Account() {
 
       {/* Account Settings Section */}
       <div className="p-8 mx-auto bg-white rounded-lg shadow-md max-w-8xl">
-        <h2 className="mb-6 text-2xl font-bold text-gray-800">
-          Account Settings
-        </h2>
-        <div className="space-y-4">
-          <button className="w-full px-4 py-2 text-sm font-medium text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
-            Change Password
-          </button>
-          <button className="w-full px-4 py-2 text-sm font-medium text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
-            Update Email Address
-          </button>
-          <button className="w-full px-4 py-2 text-sm font-medium text-left text-red-600 bg-red-100 rounded-lg hover:bg-red-200">
-            Delete Account
-          </button>
-        </div>
+        <UpdatePassword />
       </div>
 
       {/* Motivational Message */}

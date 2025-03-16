@@ -40,6 +40,7 @@ function RecipeDetails() {
           <img
             src={Images[0] || "/6c4a7fb9-5fde-42e2-b537-b4732a92cf56.png"}
             alt={Name || "Dessert"}
+            loading="lazy"
             className="object-cover w-full h-full"
           />
         </div>

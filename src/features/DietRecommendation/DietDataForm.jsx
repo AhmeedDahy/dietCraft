@@ -1,14 +1,15 @@
 import { GoArrowLeft, GoArrowRight } from "react-icons/go";
 import { IoIosCheckmarkCircleOutline } from "react-icons/io";
 import { useForm } from "react-hook-form";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useTarget } from "../../context/TargetContext";
 import Progress from "../../ui/Progress";
 import useDiet from "./useDiet";
 import useUser from "../auth/useUser";
 import SpinnerMini from "../../ui/SpinnerMini";
 import InputField from "../../ui/InputField";
 import SelectField from "../../ui/SelectField";
-import { useTarget } from "../../context/TargetContext";
+import useCreateTarget from "./useCreateTarget";
 
 export default function DietDataForm() {
   const {
@@ -19,7 +20,7 @@ export default function DietDataForm() {
   } = useForm();
   const { dietFn, isPending } = useDiet();
   const { user } = useUser();
-  const { getNutritions } = useTarget();
+  const { getNutritions, data: res } = useTarget();
   const [step, setStep] = useState(1);
   const email = useMemo(() => user?.email || "", [user]);
   const fullName = useMemo(
@@ -27,6 +28,7 @@ export default function DietDataForm() {
       `${user?.user_metadata?.firstName || ""} ${user?.user_metadata?.lastName || ""}`.trim(),
     [user]
   );
+  const { targetFn } = useCreateTarget();
 
   const fieldsByStep = {
     1: ["weight", "height", "bodyFat"],
@@ -58,6 +60,9 @@ export default function DietDataForm() {
     };
     getNutritions(nutrationsGuest);
   };
+  useEffect(() => {
+    if (res) targetFn({ email, targetData: res });
+  }, [res]);
 
   return (
     <section>

@@ -1,16 +1,18 @@
-import { useReducer, useState, useEffect } from "react";
-import IngredientsFood from "./IngredientsFood";
+import { useReducer, useState } from "react";
+import IngredientsModal from "./IngredientsModal";
 import FoodLogList from "./FoodLogList";
 import FoodLogForm from "./FoodLogForm";
+import useGetProgress from "./useGetProgress";
+import useUser from "../auth/useUser";
+import Spinner from "../../ui/Spinner";
+import IngredientsLogList from "./IngredientsLogList";
 
 const foodReducer = (state, action) => {
   switch (action.type) {
     case "ADD":
       return [...state, action.payload];
     case "REMOVE":
-      return state.filter((item) => item.id !== action.payload);
-    case "CLEAR":
-      return [];
+      return state.filter((log) => log.id !== action.payload);
     default:
       return state;
   }
@@ -18,14 +20,13 @@ const foodReducer = (state, action) => {
 
 function FoodLogs() {
   const [overlay, setOverlay] = useState(false);
-  const [foodLog, dispatch] = useReducer(foodReducer, [], () => {
-    const savedData = localStorage.getItem("foodLogData");
-    return savedData ? JSON.parse(savedData) : [];
-  });
+  const [foodLog, dispatch] = useReducer(foodReducer, []);
+  const { user } = useUser();
+  const { progressData, isPending: isProgressPending } = useGetProgress(
+    user?.email
+  );
 
-  useEffect(() => {
-    localStorage.setItem("foodLogData", JSON.stringify(foodLog));
-  }, [foodLog]);
+  if (isProgressPending) return <Spinner />;
 
   return (
     <div className="flex flex-col min-h-screen gap-5 rounded-lg md:p-4 bg-gray-50">
@@ -38,18 +39,11 @@ function FoodLogs() {
         <FoodLogForm dispatch={dispatch} setOverlay={setOverlay} />
       </div>
       {/* Overlay for Ingredients */}
-      {overlay && <IngredientsFood setOverlay={setOverlay} />}
+      {overlay && <IngredientsModal setOverlay={setOverlay} />}
       {/* Food Log List */}
       <FoodLogList foodLog={foodLog} dispatch={dispatch} />
-      {/* Ingredients Modal */}
-      <div className="w-full p-6 mx-auto bg-white rounded-lg shadow-md max-w-8xl">
-        <h4 className="mb-4 text-2xl font-bold text-gray-800">
-          Log Your Ingredients
-        </h4>
-        <p className="text-gray-600">
-          No ingredients entries yet. Start adding your meals!
-        </p>
-      </div>
+      {/* Ingredients List */}
+      <IngredientsLogList progressData={progressData} />
     </div>
   );
 }

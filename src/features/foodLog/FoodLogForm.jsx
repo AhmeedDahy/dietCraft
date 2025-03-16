@@ -8,7 +8,7 @@ function FoodLogForm({ dispatch, setOverlay }) {
     register,
     handleSubmit,
     reset,
-    formState: { errors }
+    formState: { errors },
   } = useForm({
     defaultValues: {
       food: "",
@@ -16,11 +16,14 @@ function FoodLogForm({ dispatch, setOverlay }) {
       calories: 0,
       carbs: 0,
       protein: 0,
-      fat: 0
-    }
+      fat: 0,
+    },
   });
   const onSubmit = (data) => {
-    dispatch({ type: "ADD", payload: { ...data, id: Date.now().toString() } });
+    dispatch({
+      type: "ADD",
+      payload: { ...data, id: Date.now().toString() },
+    });
     reset();
     toast.success("Food entry added successfully!");
   };
