@@ -19,22 +19,18 @@ function DietForm() {
   const { targetFn } = useCreateTarget();
   const { isPending: isGetting } = useGetTarget(user?.email);
 
-  // Combine all loading states
   const isAnyLoading = isGetting || isPlanning;
 
-  // Simplify details and initial values
   const details = Array.isArray(plans) ? plans : [];
   const initialValues = details.length > 0 ? details[0] : null;
 
-  // useForm hook
   const {
     register,
     formState: { errors },
     handleSubmit,
-    reset
+    reset,
   } = useForm();
 
-  // Reset form with default values when data is loaded
   useEffect(() => {
     if (initialValues) {
       reset({
@@ -44,17 +40,15 @@ function DietForm() {
         age: initialValues.age,
         plan: initialValues.plan + " " + initialValues.rate,
         gender: initialValues.gender,
-        activity: initialValues.activity
+        activity: initialValues.activity,
       });
     }
   }, [initialValues, reset]);
 
-  // Email and fullName user
   const email = user?.email || "";
   const fullName =
     `${user?.user_metadata?.firstName || ""} ${user?.user_metadata?.lastName || ""}`.trim();
 
-  // Handle form submission
   const onSubmit = async (data) => {
     try {
       const rate = data?.plan?.split(" ");
@@ -65,20 +59,18 @@ function DietForm() {
         bodyFat: Number(data.bodyFat),
         age: Number(data.age),
         rate: rate[1],
-        plan: rate[0]
+        plan: rate[0],
       };
       await dietFn({
         addGuest: { ...data, email, fullName, rate: rate[1], plan: rate[0] },
-        email
+        email,
       });
       await getNutritions(nutrationsGuest);
     } catch (error) {
       console.error("Error submitting form:", error);
-      // Display an error message to the user
     }
   };
 
-  // Save target data when response is received
   useEffect(() => {
     if (res) targetFn({ email, targetData: res });
   }, [res]);
@@ -93,8 +85,8 @@ function DietForm() {
         Calculate Your Diet Plan
       </h2>
       <form onSubmit={handleSubmit(onSubmit)}>
-        {/* Form fields (age, height, weight, gender, plan, activity) */}
         <div className="grid gap-6 mb-6 md:grid-cols-2">
+          {/* Age */}
           <div>
             <label
               htmlFor="age"
@@ -107,20 +99,22 @@ function DietForm() {
               id="age"
               {...register("age", {
                 required: "Age is required",
-                min: { value: 13, message: "Age must exceed 100 cm" },
-                max: { value: 110, message: "Age must not exceed 250 cm" }
+                min: { value: 13, message: "Age must be at least 13" },
+                max: { value: 110, message: "Age must not exceed 110" },
               })}
+              onChange={(e) => {
+                if (e.target.value < 0) e.target.value = 0;
+              }}
               className={`w-full p-3 border rounded-lg outline-none ${
                 errors.age ? "border-red-500" : "border-gray-300"
-              }
-                `}
+              }`}
             />
             {errors.age && (
               <p className="text-sm text-red-500">{errors.age.message}</p>
             )}
           </div>
 
-          {/* Other form fields (height, weight, etc.) */}
+          {/* Height */}
           <div>
             <label
               htmlFor="height"
@@ -133,19 +127,22 @@ function DietForm() {
               id="height"
               {...register("height", {
                 required: "Height is required",
-                min: { value: 100, message: "Height must exceed 100 cm" },
-                max: { value: 250, message: "Height must not exceed 250 cm" }
+                min: { value: 100, message: "Height must be at least 100 cm" },
+                max: { value: 250, message: "Height must not exceed 250 cm" },
               })}
+              onChange={(e) => {
+                if (e.target.value < 0) e.target.value = 0;
+              }}
               className={`w-full p-3 border rounded-lg outline-none ${
                 errors.height ? "border-red-500" : "border-gray-300"
-              }
-                `}
+              }`}
             />
             {errors.height && (
               <p className="text-sm text-red-500">{errors.height.message}</p>
             )}
           </div>
 
+          {/* Weight */}
           <div>
             <label
               htmlFor="weight"
@@ -158,25 +155,22 @@ function DietForm() {
               id="weight"
               {...register("weight", {
                 required: "Weight is required",
-                min: {
-                  value: 60,
-                  message: "The minimum allowed weight is 60"
-                },
-                max: {
-                  value: 300,
-                  message: "The maximum allowed weight is 300"
-                }
+                min: { value: 60, message: "Weight must be at least 60 kg" },
+                max: { value: 300, message: "Weight must not exceed 300 kg" },
               })}
+              onChange={(e) => {
+                if (e.target.value < 0) e.target.value = 0;
+              }}
               className={`w-full p-3 border rounded-lg outline-none ${
                 errors.weight ? "border-red-500" : "border-gray-300"
-              }
-                `}
+              }`}
             />
             {errors.weight && (
               <p className="text-sm text-red-500">{errors.weight.message}</p>
             )}
           </div>
 
+          {/* Gender */}
           <div>
             <label
               htmlFor="gender"
@@ -187,10 +181,7 @@ function DietForm() {
             <select
               id="gender"
               {...register("gender")}
-              className={`w-full p-3 border rounded-lg outline-none ${
-                errors.gender ? "border-red-500" : "border-gray-300"
-              }
-                `}
+              className="w-full p-3 border rounded-lg outline-none"
             >
               <option value="male">Male</option>
               <option value="female">Female</option>
@@ -198,7 +189,7 @@ function DietForm() {
           </div>
         </div>
 
-        {/* Gender and Activity fields */}
+        {/* Plan & Activity */}
         <div className="grid gap-6 md:grid-cols-2">
           <div>
             <label
@@ -210,13 +201,10 @@ function DietForm() {
             <select
               id="plan"
               {...register("plan")}
-              className={`w-full p-3 border rounded-lg outline-none ${
-                errors.plan ? "border-red-500" : "border-gray-300"
-              }
-            `}
+              className="w-full p-3 border rounded-lg outline-none"
             >
               <option value="gain 0.5">Gain Weight</option>
-              <option value="gain 1">Extreme gain weight</option>
+              <option value="gain 1">Extreme Gain Weight</option>
               <option value="maintain 0">Maintain</option>
               <option value="loss 0.5">Weight Loss</option>
               <option value="loss 1">Extreme Weight Loss</option>
@@ -232,33 +220,25 @@ function DietForm() {
             <select
               id="activity"
               {...register("activity")}
-              className={`w-full p-3 border rounded-lg outline-none ${
-                errors.activity ? "border-red-500" : "border-gray-300"
-              }
-                `}
+              className="w-full p-3 border rounded-lg outline-none"
             >
               <option value="sedentary">Little/no exercise</option>
               <option value="lightlyActive">Light exercise</option>
               <option value="moderateActivity">Moderate exercise</option>
               <option value="active">Active</option>
-              <option value="veryActive">Very active & physical job</option>
+              <option value="veryActive">Very Active & Physical Job</option>
             </select>
           </div>
         </div>
+
+        {/* Submit Button */}
         <div className="py-4">
           <button
             type="submit"
             disabled={isLoading}
-            aria-label="Calculate Diet Plan"
-            className="flex items-center justify-center w-full gap-2 p-3 text-white transition-transform transform bg-green-600 rounded-lg md:w-48 hover:bg-green-700"
+            className="w-full p-3 text-white bg-green-600 rounded-lg md:w-48 hover:bg-green-700"
           >
-            {isLoading ? (
-              <div className="flex items-center justify-center">
-                <SpinnerMini />
-              </div>
-            ) : (
-              "Calculate"
-            )}
+            {isLoading ? <SpinnerMini /> : "Calculate"}
           </button>
         </div>
       </form>

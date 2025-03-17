@@ -6,7 +6,7 @@ function InputField({
   register,
   validation,
   error,
-  defaultValue
+  defaultValue,
 }) {
   return (
     <div>
@@ -22,6 +22,9 @@ function InputField({
         type={type}
         {...register(id, validation)}
         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 shadow-sm focus:ring-green-500 focus:border-green-500"
+        onChange={(e) => {
+          if (e.target.value < 0) e.target.value = 0;
+        }}
       />
       {error && <p className="text-sm text-red-500">{error.message}</p>}
     </div>
