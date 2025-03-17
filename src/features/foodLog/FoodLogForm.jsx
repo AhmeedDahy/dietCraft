@@ -1,9 +1,12 @@
 /* eslint-disable react/prop-types */
 import { FiPlusCircle } from "react-icons/fi";
 import { useForm } from "react-hook-form";
-import toast from "react-hot-toast";
+import useAddFood from "./useAddFood";
+import useUser from "../auth/useUser";
 
 function FoodLogForm({ dispatch, setOverlay }) {
+  const { user } = useUser();
+  const { addFoodFn } = useAddFood();
   const {
     register,
     handleSubmit,
@@ -20,12 +23,12 @@ function FoodLogForm({ dispatch, setOverlay }) {
     },
   });
   const onSubmit = (data) => {
+    addFoodFn({ ...data, email: user.email, mealId: Date.now() });
     dispatch({
       type: "ADD",
       payload: { ...data, id: Date.now().toString() },
     });
     reset();
-    toast.success("Food entry added successfully!");
   };
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

@@ -2,7 +2,7 @@ import supabase from "./supabase";
 
 export async function addMeal(progressData) {
   const { data, error } = await supabase
-    .from("ingredientNutritions")
+    .from("mealsNutritions")
     .insert([progressData]);
 
   if (error) {
@@ -11,9 +11,9 @@ export async function addMeal(progressData) {
   return data;
 }
 
-export async function getProgress(email) {
+export async function getMeals(email) {
   let { data: MealsNutritions, error } = await supabase
-    .from("ingredientNutritions")
+    .from("mealsNutritions")
     .select("*")
     .eq("email", email);
 
@@ -24,9 +24,9 @@ export async function getProgress(email) {
 }
 export async function deleteMeal(id) {
   const { error } = await supabase
-    .from("ingredientNutritions")
+    .from("mealsNutritions")
     .delete()
-    .eq("IngredientsId", id);
+    .eq("mealId", id);
   if (error) {
     throw new Error("Failed to delete data: " + error.message);
   }
